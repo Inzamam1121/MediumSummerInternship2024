@@ -1,0 +1,9 @@
+PORT=4000
+DB_STRING=mongodb://localhost:27017/Impulxor
+ACCESS_TOKEN=
+REFRESH_TOKEN=
+EMAIL_USER=
+EMAIL_PASS=
+NODE_ENV=dev
+DEV_URL=http://localhost:3000
+PROD_URL=http://localhost:3000
