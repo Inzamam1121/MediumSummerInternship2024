@@ -1,5 +1,9 @@
 const router = require("express").Router();
-const { protectUser, protectAdmin } = require("../middlewares/authMiddleware");
+const {
+  protectUser,
+  protectAdmin,
+  protect,
+} = require("../middlewares/authMiddleware");
 const {
   registerUser,
   verifyToken,
@@ -17,13 +21,11 @@ router.post("/register", registerUser);
 
 router.post("/admin/register", registerAdmin);
 
-router.get("/token/verify/:token", protectUser, verifyToken);
+router.get("/token/verify/:token", protect, verifyToken);
 
-router.get("/admin/token/verify/:token", protectAdmin, verifyToken);
+router.get("/token/regenerate", protect, regenerateToken);
 
-router.get("/token/regenerate", protectUser, regenerateToken);
-
-router.get("/admin/token/regenerate", protectAdmin, regenerateToken);
+router.post("/login", login);
 
 router.post("/admin/login", loginAdmin);
 

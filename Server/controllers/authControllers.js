@@ -107,7 +107,6 @@ const verifyToken = async (req, res) => {
       verificationToken: req.params.token,
       verificationTokenExpires: { $gt: Date.now() },
     });
-
     if (!user) {
       return res.status(400).send("Invalid or expired token.");
     }
@@ -129,6 +128,7 @@ const regenerateToken = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     user.verificationToken = generateVerificationToken();
+    user.verificationTokenExpires = expiry(300);
     await user.save();
     await sendCode(user);
     res.status(200).send("Verification Code Sent.");
@@ -144,7 +144,7 @@ const login = async (req, res) => {
       res.status(400).send("Please give Email and Password.");
       return;
     }
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email: email, isAdmin: false });
     if (user) {
       const hehe = await user.matchPassword(password);
       if (hehe) {
