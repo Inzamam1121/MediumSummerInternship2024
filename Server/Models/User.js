@@ -20,13 +20,16 @@ const UserSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    otp: {
+        type: String,
+        required: false
+    },
     verified: {
         type: Boolean,
         default: false,
     },
 });
 
-// Pre-save hook to hash password before saving
 UserSchema.pre('save', async function(next) {
     if (this.isModified('password') || this.isNew) {
         const salt = await bcrypt.genSalt(10);
