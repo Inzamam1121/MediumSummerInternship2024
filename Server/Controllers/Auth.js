@@ -26,11 +26,10 @@ exports.signup = async (req, res) => {
         });
 
         const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         await user.save();
-        console.log(`User saved: ${user}`);
-
+    
         await sendEmail(email, otp);
 
         res.json({ msg: 'User registered. Check your email for OTP.' });
@@ -39,7 +38,6 @@ exports.signup = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
-
 exports.verifyEmail = async (req, res) => {
     const { email, otp } = req.body;
 
@@ -54,36 +52,41 @@ exports.verifyEmail = async (req, res) => {
             return res.status(400).json({ msg: 'Invalid OTP' });
         }
 
-        user.otp = null; 
-        user.isVerified = true; 
+        user.otp = null;
+        user.isVerified = true;
         await user.save();
 
         res.json({ msg: 'Email verified successfully' });
     } catch (err) {
-        console.error(err.message);
+        console.error('Verification error:', err.message);
         res.status(500).send('Server error');
     }
 };
 
 
 exports.login = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const { email, password } = req.body;
 
     try {
         let user = await User.findOne({ email });
 
         if (!user) {
+            console.log('User not found'); 
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).json({ msg: 'Invalid Credentials, password doesnt match' });
-            
+            console.log('Password does not match'); // Debugging: Log if passwords do not match
+            return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
-        // Generate JWT token
         const payload = {
             user: {
                 id: user.id
@@ -95,10 +98,7 @@ exports.login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '1h' },
             (err, token) => {
-                if (err) {
-                    console.error('Token generation error:', err.message);
-                    return res.status(500).send('Server error');
-                }
+                if (err) throw err;
                 res.json({ token });
             }
         );
