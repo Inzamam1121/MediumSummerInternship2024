@@ -38,6 +38,7 @@ exports.signup = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
 exports.verifyEmail = async (req, res) => {
     const { email, otp } = req.body;
 
@@ -54,11 +55,12 @@ exports.verifyEmail = async (req, res) => {
 
         user.otp = null;
         user.isVerified = true;
-        await user.save();
+
 
         res.json({ msg: 'Email verified successfully' });
-    } catch (err) {
-        console.error('Verification error:', err.message);
+    } 
+    catch (err) {
+        console.error('Verify email error:', err.message);
         res.status(500).send('Server error');
     }
 };
@@ -78,6 +80,9 @@ exports.login = async (req, res) => {
         if (!user) {
             console.log('User not found'); 
             return res.status(400).json({ msg: 'Invalid Credentials' });
+        }
+        if (!user.isVerified) {
+            return res.status(400).json({ msg: 'Please verify your email before logging in' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
